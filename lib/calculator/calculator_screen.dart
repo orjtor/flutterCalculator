@@ -10,12 +10,13 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  // STATE - All data som kan ändras
+  // STATE - Håll koll på hela beräkningen
   String _currentDisplay = '0';
-  String _historyDisplay = '';
-  double? _firstOperand;
-  String? _operator;
+  String _expression = ''; // Hela uttrycket t.ex "2+3+5-7"
+  double _result = 0; // Löpande resultat
+  String? _pendingOperator; // Nästa operation att utföra
   bool _shouldResetDisplay = false;
+  bool _isNewCalculation = true;
 
   // ============================================
   // LOGIK - Hantera knapptryckningar
@@ -29,56 +30,99 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       } else {
         _currentDisplay += number;
       }
+      _isNewCalculation = false;
     });
   }
 
   void _onOperatorPressed(String operator) {
     setState(() {
-      _firstOperand = double.tryParse(_currentDisplay);
-      _operator = operator;
-      _historyDisplay = '$_currentDisplay $operator';
+      final currentValue = double.tryParse(_currentDisplay) ?? 0;
+      final formattedValue = _formatResult(currentValue);
+
+      if (_isNewCalculation || _pendingOperator == null) {
+        // Börja ny beräkning eller första operatorn
+        _result = currentValue;
+        _expression = '$formattedValue $operator';
+        _currentDisplay = formattedValue;
+      } else {
+        // Utför föregående operation
+        _result = _performOperation(_result, currentValue, _pendingOperator!);
+        _expression += ' $formattedValue $operator';
+        _currentDisplay = _formatResult(_result);
+      }
+
+      _pendingOperator = operator;
       _shouldResetDisplay = true;
     });
   }
 
   void _onEqualsPressed() {
-    if (_firstOperand == null || _operator == null) return;
+    if (_pendingOperator == null) return;
 
     setState(() {
-      final secondOperand = double.tryParse(_currentDisplay);
-      if (secondOperand == null) return;
+      final currentValue = double.tryParse(_currentDisplay) ?? 0;
+      _result = _performOperation(_result, currentValue, _pendingOperator!);
 
-      double result = 0;
-      switch (_operator) {
-        case '+':
-          result = _firstOperand! + secondOperand;
-          break;
-        case '-':
-          result = _firstOperand! - secondOperand;
-          break;
-        case 'x':
-          result = _firstOperand! * secondOperand;
-          break;
-        case '÷':
-          result = secondOperand != 0 ? _firstOperand! / secondOperand : 0;
-          break;
+      // Kontrollera om resultatet är infinity eller NaN
+      if (_result.isInfinite) {
+        _currentDisplay = '∞';
+      } else if (_result.isNaN) {
+        _currentDisplay = 'Error';
+      } else {
+        _currentDisplay = _formatResult(_result);
       }
 
-      _historyDisplay = '$_historyDisplay $_currentDisplay =';
-      _currentDisplay = result.toString();
-      _firstOperand = null;
-      _operator = null;
+      _expression += ' ${_formatResult(currentValue)} =';
+      _pendingOperator = null;
       _shouldResetDisplay = true;
+      _isNewCalculation = true;
     });
+  }
+
+  double _performOperation(double first, double second, String operator) {
+    switch (operator) {
+      case '+':
+        return first + second;
+      case '-':
+        return first - second;
+      case 'X':
+      case 'x':
+        return first * second;
+      case '÷':
+        return first / second;
+      default:
+        return second;
+    }
+  }
+
+  String _formatResult(double value) {
+    // Heltal utan decimaler
+    if (value == value.toInt() && value.abs() < 1e15) {
+      return value.toInt().toString();
+    }
+
+    // Har decimaler - visa dem utan onödiga nollor
+    String result = value.toString();
+
+    // Ta bort trailing zeros efter decimalpunkt
+    if (result.contains('.')) {
+      // Ta bort nollor i slutet
+      result = result.replaceAll(RegExp(r'0+$'), '');
+      // Ta bort punkt om bara nollor finns
+      result = result.replaceAll(RegExp(r'\.$'), '');
+    }
+
+    return result;
   }
 
   void _onClearPressed() {
     setState(() {
       _currentDisplay = '0';
-      _historyDisplay = '';
-      _firstOperand = null;
-      _operator = null;
+      _expression = '';
+      _result = 0;
+      _pendingOperator = null;
       _shouldResetDisplay = false;
+      _isNewCalculation = true;
     });
   }
 
@@ -101,16 +145,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // DISPLAY-SEKTION (Historik + Nuvarande)
             Expanded(
               flex: 2,
               child: DisplaySection(
-                historyText: _historyDisplay,
+                historyText: _expression, // Visar hela uttrycket
                 currentText: _currentDisplay,
               ),
             ),
-
-            // KNAPPAR-SEKTION
             Expanded(
               flex: 5,
               child: ButtonsSection(
