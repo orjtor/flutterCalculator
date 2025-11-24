@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'display_section/display_section.dart';
 import 'button_section/button_section.dart';
+import 'package:flutter_calculator/calculator/calculator_logic.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -37,7 +38,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _onOperatorPressed(String operator) {
     setState(() {
       final currentValue = double.tryParse(_currentDisplay) ?? 0;
-      final formattedValue = _formatResult(currentValue);
+      final formattedValue = CalculatorLogic().formatResult(currentValue);
 
       if (_isNewCalculation || _pendingOperator == null) {
         // Börja ny beräkning eller första operatorn
@@ -46,9 +47,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _currentDisplay = formattedValue;
       } else {
         // Utför föregående operation
-        _result = _performOperation(_result, currentValue, _pendingOperator!);
+        _result = CalculatorLogic().performOperation(
+          _result,
+          currentValue,
+          _pendingOperator!,
+        );
         _expression += ' $formattedValue $operator';
-        _currentDisplay = _formatResult(_result);
+        _currentDisplay = CalculatorLogic().formatResult(_result);
       }
 
       _pendingOperator = operator;
@@ -61,7 +66,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     setState(() {
       final currentValue = double.tryParse(_currentDisplay) ?? 0;
-      _result = _performOperation(_result, currentValue, _pendingOperator!);
+      _result = CalculatorLogic().performOperation(
+        _result,
+        currentValue,
+        _pendingOperator!,
+      );
 
       // Kontrollera om resultatet är infinity eller NaN
       if (_result.isInfinite) {
@@ -69,50 +78,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       } else if (_result.isNaN) {
         _currentDisplay = 'Error';
       } else {
-        _currentDisplay = _formatResult(_result);
+        _currentDisplay = CalculatorLogic().formatResult(_result);
       }
 
-      _expression += ' ${_formatResult(currentValue)} =';
+      _expression += ' ${CalculatorLogic().formatResult(currentValue)} =';
       _pendingOperator = null;
       _shouldResetDisplay = true;
       _isNewCalculation = true;
     });
-  }
-
-  double _performOperation(double first, double second, String operator) {
-    switch (operator) {
-      case '+':
-        return first + second;
-      case '-':
-        return first - second;
-      case 'X':
-      case 'x':
-        return first * second;
-      case '÷':
-        return first / second;
-      default:
-        return second;
-    }
-  }
-
-  String _formatResult(double value) {
-    // Heltal utan decimaler
-    if (value == value.toInt() && value.abs() < 1e15) {
-      return value.toInt().toString();
-    }
-
-    // Har decimaler - visa dem utan onödiga nollor
-    String result = value.toString();
-
-    // Ta bort trailing zeros efter decimalpunkt
-    if (result.contains('.')) {
-      // Ta bort nollor i slutet
-      result = result.replaceAll(RegExp(r'0+$'), '');
-      // Ta bort punkt om bara nollor finns
-      result = result.replaceAll(RegExp(r'\.$'), '');
-    }
-
-    return result;
   }
 
   void _onClearPressed() {
