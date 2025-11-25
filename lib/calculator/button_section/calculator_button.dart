@@ -32,6 +32,12 @@ class CalculatorButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+    final bool isLandscape = orientation == Orientation.landscape;
+
+    final double fontSize = isLandscape ? 18 : 28;
+    final double pad = isLandscape ? 12 : 24;
+
     return Expanded(
       flex: flex,
       child: Container(
@@ -43,14 +49,17 @@ class CalculatorButton extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(pad),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
