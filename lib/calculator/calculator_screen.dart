@@ -113,20 +113,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+    final bool isLandscape = orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              flex: 2,
+              flex: isLandscape ? 1 : 2,
               child: DisplaySection(
-                historyText: _expression, // Visar hela uttrycket
+                historyText: _expression,
                 currentText: _currentDisplay,
               ),
             ),
             Expanded(
-              flex: 5,
+              flex: isLandscape ? 4 : 5,
               child: ButtonsSection(
                 onNumberPressed: _onNumberPressed,
                 onOperatorPressed: _onOperatorPressed,
