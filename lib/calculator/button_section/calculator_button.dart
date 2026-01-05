@@ -36,29 +36,32 @@ class CalculatorButton extends StatelessWidget {
     final bool isLandscape = orientation == Orientation.landscape;
 
     final double fontSize = isLandscape ? 18 : 28;
-    final double pad = isLandscape ? 12 : 24;
+    final double pad = isLandscape ? 8 : 16;
 
     return Expanded(
       flex: flex,
-      child: Container(
-        margin: const EdgeInsets.all(4),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _getButtonColor(),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: AspectRatio(
+          aspectRatio: flex.toDouble(),
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _getButtonColor(),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: EdgeInsets.all(pad),
             ),
-            padding: EdgeInsets.all(pad),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

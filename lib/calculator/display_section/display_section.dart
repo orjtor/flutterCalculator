@@ -24,10 +24,36 @@ class DisplaySection extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final totalH = constraints.maxHeight;
-          // Fördela höjd (justera procentsatser vid behov)
-          final historyH = totalH * (isLandscape ? 0.28 : 0.25);
-          final spacerH = 4.0;
-          final currentH = totalH - historyH - spacerH;
+
+          // Minimihöjd
+          if (totalH < 30) {
+            return Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  currentText,
+                  style: TextStyle(
+                    fontSize: currentBaseFont,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // Fördela höjd
+          final historyH = (totalH * (isLandscape ? 0.28 : 0.25)).clamp(
+            8.0,
+            totalH - 20,
+          );
+          final spacerH = 1.0;
+          final currentH = (totalH - historyH - spacerH).clamp(
+            15.0,
+            totalH - historyH - spacerH,
+          );
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
