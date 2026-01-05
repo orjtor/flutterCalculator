@@ -13,7 +13,17 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const CalculatorScreen(),
+      home: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: 360,
+            maxWidth: 600,
+            minHeight: 500,
+            maxHeight: 1000,
+          ),
+          child: const CalculatorScreen(),
+        ),
+      ),
     );
   }
 }
